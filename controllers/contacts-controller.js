@@ -8,7 +8,10 @@ const { default: mongoose } = require('mongoose')
 const allContacts = async (req, res, next) => {
   let allContactList
   try {
-    allContactList = await Contact.find()
+    console.log(req.userData.userId)
+    allContactList = await User.findById(req.userData.userId)
+    allContactList = allContactList.contacts
+    console.log(allContactList)
   } catch (err) {
     const error = new HttpError('Something went wrong, could not find a contact', 500)
     return next(error)
@@ -17,7 +20,18 @@ const allContacts = async (req, res, next) => {
   if (!allContactList || allContactList.length === 0) {
     return res.json({})
   }
-  res.json({ contacts: allContactList.map((contact) => contact.toObject({ getters: true })) })
+  allContactList = allContactList.map(async (contactId) => {
+    try {
+      const contact = await Contact.findById(contactId)
+    } catch (err) {
+      return next(err)
+    }
+    return contact.toObject({ getters: true })
+  })
+
+  console.log(allContactList)
+  // res.json({contacts:
+  //   })
 }
 
 const findContactById = async (req, res, next) => {
