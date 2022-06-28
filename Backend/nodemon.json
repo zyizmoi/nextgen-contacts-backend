@@ -1,0 +1,8 @@
+{
+  "env": {
+    "DB_USER": "angzhenyi",
+    "DB_PASSWORD": "mimMYrhvKoh8p3Ii",
+    "DB_NAME": "",
+    "JWT_KEY": "ultrasafeprivatekey"
+  }
+}
