@@ -8,16 +8,17 @@ const { default: mongoose } = require('mongoose')
 const allContacts = async (req, res, next) => {
   let allContactList
   try {
-    allContactList = await Contact.find()
+    allContactList = await User.findById(req.userData.userId).populate('contacts')
   } catch (err) {
-    const error = new HttpError('Something went wrong, could not find a contact', 500)
+    const error = new HttpError('Something went wrong, could not find contacts', 500)
     return next(error)
   }
 
   if (!allContactList || allContactList.length === 0) {
     return res.json({})
   }
-  res.json({ contacts: allContactList.map((contact) => contact.toObject({ getters: true })) })
+
+  res.json({ contacts: allContactList.contacts.map((contact) => contact.toObject({ getters: true })) })
 }
 
 const findContactById = async (req, res, next) => {
@@ -47,9 +48,20 @@ const searchContact = async (req, res, next) => {
   }
 
   let contacts
+  // try {
+  //   contacts = await Contact.find({
+  //     $or: [{ name: { $regex: filter, $options: 'i' } }, { number: { $regex: filter, $options: 'i' } }, { email: { $regex: filter, $options: 'i' } }],
+  //   })
+  // } catch (err) {
+  //   const error = new HttpError('Something went wrong, could not find a contact', 500)
+  //   return next(error)
+  // }
+
+  // $or: [{ name: { $regex: filter, $options: 'i' } }, { number: { $regex: filter, $options: 'i' } }, { email: { $regex: filter, $options: 'i' } }],
   try {
-    contacts = await Contact.find({
-      $or: [{ name: { $regex: filter, $options: 'i' } }, { number: { $regex: filter, $options: 'i' } }, { email: { $regex: filter, $options: 'i' } }],
+    contacts = await User.findById(req.userData.userId).populate({
+      path: 'contacts',
+      match: { $or: [{ name: { $regex: filter, $options: 'i' } }, { number: { $regex: filter, $options: 'i' } }, { email: { $regex: filter, $options: 'i' } }] },
     })
   } catch (err) {
     const error = new HttpError('Something went wrong, could not find a contact', 500)
@@ -61,7 +73,7 @@ const searchContact = async (req, res, next) => {
     // return res.json({ contacts: {} })
   }
 
-  res.json({ contacts: contacts.map((contact) => contact.toObject({ getters: true })) })
+  res.json({ contacts: contacts.contacts.map((contact) => contact.toObject({ getters: true })) })
 }
 
 const createContact = async (req, res, next) => {
